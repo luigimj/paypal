@@ -14,25 +14,69 @@
 
   <script>
     paypal.Button.render({
-      env: 'production', // Or 'sandbox',
+      env: 'sandbox', // Or 'sandbox',
 
       commit: true, // Show a 'Pay Now' button
 
+      client: {
+        sandbox: 'AfVhEhZcKglUI3NioRjVVN8xyGbeB0TdYrXfe80fNlMetMWrJcp2bsawExXUM6I5D0hbKAMXJvkWR4jJ'
+      },
+
       style: {
-        color: 'gold',
-        size: 'small'
+        label: 'paypal',
+        size: 'small',
+        shape: 'rect',
+        color: 'gold'        
       },
 
+      // Set up the payment here 
       payment: function (data, actions) {
-        /* 
-         * Set up the payment here 
-         */
+        return actions.payment.create({
+          payment: {
+            transactions: [
+              {
+                amount: { 
+                  total: '30.11', 
+                  currency: 'USD',
+                  details: {
+                    subtotal: '30.00',
+                    tax: '0.07',
+                    shipping: '0.03',
+                    handling_fee: '1.00',
+                    shipping_discount: '-1.00',
+                    insurance: '0.01'
+                  }
+                }
+              }
+            ]
+          }
+        });
       },
 
+      // Execute the payment here 
       onAuthorize: function (data, actions) {
-        /* 
-         * Execute the payment here 
-         */
+
+        // Get the payment details
+        return actions.payment.get().then(function(data) {
+          var shipping = data.payer.payer_info.shipping_address;
+
+          console.log(
+            data + '\n' +
+            shipping.recipient_name + '\n' +
+            shipping.line1 + '\n' +
+            shipping.city + '\n' +
+            shipping.state + '\n' +
+            shipping.postal_code + '\n' +
+            shipping.country_code
+          );
+
+          return actions.payment.execute().then(function () {
+            // The payment is complete!
+            // You can now show a confirmation message to the customer
+            window.alert('Payment Complete!');
+          });
+
+        });
       },
 
       onCancel: function (data, actions) {
