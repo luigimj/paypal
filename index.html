@@ -13,13 +13,20 @@
   <div id="paypal-button"></div>
 
   <script>
+    var CURRENCY = 'USD';
+    var SUBTOTAL = '1.80';
+    var TAX = '0.10';
+    var SHIPPING = '1.00';
+    var SHIPPING_DISCOUNT = '-1.00';
+    var TOTAL = '1.90';
+    
     paypal.Button.render({
       env: 'sandbox', // Or 'sandbox',
 
       commit: true, // Show a 'Pay Now' button
 
       client: {
-        sandbox: 'AfVhEhZcKglUI3NioRjVVN8xyGbeB0TdYrXfe80fNlMetMWrJcp2bsawExXUM6I5D0hbKAMXJvkWR4jJ'
+        sandbox: 'AdR9nioMB7a6Nh-INzhtTSgABsXSMVtL_hizMEwMVxT0e5vKJI4ckBaWDls2d1n-5zCVgyjoqaVjHCxR'
       },
 
       style: {
@@ -36,19 +43,28 @@
             transactions: [
               {
                 amount: { 
-                  total: '30.11', 
-                  currency: 'USD',
+                  total: TOTAL, 
+                  currency: CURRENCY,
                   details: {
-                    subtotal: '30.00',
-                    tax: '0.07',
-                    shipping: '0.03',
-                    handling_fee: '1.00',
-                    shipping_discount: '-1.00',
-                    insurance: '0.01'
+                    subtotal: SUBTOTAL,
+                    tax: TAX,
+                    shipping: SHIPPING,
+                    shipping_discount: SHIPPING_DISCOUNT
                   }
+                },
+                description: 'The payment transaction description',
+                //invoice_number: '48787589673',
+                item_list: {
+                  items: [
+                    {name: 'Gold Membership', quantity: '1', price: '0.45', currency: CURRENCY},
+                    {name: 'Silver Membership', quantity: '1', price: '0.45', currency: CURRENCY},
+                    {name: 'Bronce Membership', quantity: '1', price: '0.45', currency: CURRENCY},
+                    {name: 'Titanio Membership', quantity: '1', price: '0.45', currency: CURRENCY},
+                  ]
                 }
               }
-            ]
+            ],
+            note_to_payer: 'Contact us for any questions on your order'
           }
         });
       },
@@ -57,11 +73,11 @@
       onAuthorize: function (data, actions) {
 
         // Get the payment details
-        return actions.payment.get().then(function(data) {
-          var shipping = data.payer.payer_info.shipping_address;
+       // return actions.payment.get().then(function(data) {
+          /*var shipping = data.payer.payer_info.shipping_address;
 
-          console.log(
-            data + '\n' +
+          console.log(data.payment.payer.payer_info);
+          console.log(            
             shipping.recipient_name + '\n' +
             shipping.line1 + '\n' +
             shipping.city + '\n' +
@@ -70,25 +86,42 @@
             shipping.country_code
           );
 
-          return actions.payment.execute().then(function () {
+          $.each(data, function(index, value) {
+            console.log(index+ ": "+ value);
+          });*/
+
+          return actions.payment.execute().then(function (payment) {
             // The payment is complete!
             // You can now show a confirmation message to the customer
             window.alert('Payment Complete!');
+            
+            // Get payer info            
+            var payer = payment.payer.payer_info;
+            console.log("Email: " + payer.email);
+            console.log("Name: " + payer.first_name + ' ' + payer.last_name);
+            
+            // Get payment info
+            console.log("Id: " + payment.id);
+            console.log("Intent: " + payment.intent);
+            console.log("State: " + payment.state);
           });
 
-        });
+        //});
       },
 
       onCancel: function (data, actions) {
         /* 
          * Buyer cancelled the payment 
          */
+         console.log('Payment was cancelled!');
       },
 
       onError: function (err) {
         /* 
          * An error occurred during the transaction 
          */
+         console.log(err);
+         window.alert('There was an error');
       }
     }, '#paypal-button');
   </script>
